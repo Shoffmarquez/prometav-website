@@ -3,6 +3,7 @@ const path = require('path');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
+console.log(`Starting server with PORT env: ${process.env.PORT}, using port: ${PORT}`);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
