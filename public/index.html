@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProMetaV | Learn. Train. Work. Earn.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ========== RESET & BASE ========== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-void:      #020610;
+      --bg-deep:      #060d1f;
+      --bg-card:      rgba(8, 18, 40, 0.75);
+      --bg-glass:     rgba(0, 220, 255, 0.04);
+      --pink:         #ff1a6d;
+      --pink-glow:    rgba(255, 26, 109, 0.35);
+      --cyan:         #00dcff;
+      --cyan-glow:    rgba(0, 220, 255, 0.3);
+      --violet:       #9b30ff;
+      --violet-glow:  rgba(155, 48, 255, 0.3);
+      --gold:         #ffd166;
+      --text-primary: #e8f4ff;
+      --text-muted:   #6a85a8;
+      --border:       rgba(0, 220, 255, 0.15);
+      --border-pink:  rgba(255, 26, 109, 0.3);
+      --radius:       12px;
+      --radius-lg:    20px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg-void);
+      color: var(--text-primary);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 17px;
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    /* ========== GLOBAL GRID OVERLAY ========== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,220,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,220,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ========== SCROLLBAR ========== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-void); }
+    ::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 3px; }
+
+    /* ========== UTILITY ========== */
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+    .text-pink   { color: var(--pink); }
+    .text-cyan   { color: var(--cyan); }
+    .text-violet { color: var(--violet); }
+
+    /* ========== NAVBAR ========== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(2, 6, 16, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 18px;
+      color: #fff;
+      box-shadow: 0 0 20px var(--pink-glow);
+    }
+    .nav-logo-text {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--text-primary);
+      letter-spacing: 2px;
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 36px;
+      align-items: center;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--cyan); }
+
+    .btn-nav {
+      padding: 10px 24px;
+      background: transparent;
+      border: 1px solid var(--pink);
+      color: var(--pink);
+      border-radius: 6px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-transform: uppercase;
+    }
+    .btn-nav:hover {
+      background: var(--pink);
+      color: #fff;
+      box-shadow: 0 0 24px var(--pink-glow);
+    }
+
+    /* ========== HERO ========== */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      padding-top: 80px;
+    }
+
+    /* Ambient orbs */
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, rgba(155,48,255,0.12) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .orb-pink {
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(255,26,109,0.14) 0%, transparent 65%);
+      bottom: -100px; left: -100px;
+      border-radius: 50%;
+    }
+    .orb-cyan {
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(0,220,255,0.1) 0%, transparent 65%);
+      top: 80px; right: -60px;
+      border-radius: 50%;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 20px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 32px;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 8px; height: 8px;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--cyan);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.4); }
+    }
+
+    .hero-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(52px, 8vw, 90px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -1px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .hero-title .accent {
+      background: linear-gradient(135deg, var(--pink) 0%, var(--violet) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: block;
+    }
+
+    .hero-tagline {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(13px, 2vw, 17px);
+      font-weight: 500;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .hero-tagline span { color: var(--cyan); }
+
+    .hero-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0 auto 48px;
+      line-height: 1.8;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 36px;
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+      box-shadow: 0 4px 30px var(--pink-glow);
+    }
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 40px var(--pink-glow), 0 0 0 1px var(--pink);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 36px;
+      background: transparent;
+      border: 1px solid var(--cyan);
+      border-radius: var(--radius);
+      color: var(--cyan);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .btn-secondary:hover {
+      background: rgba(0,220,255,0.08);
+      box-shadow: 0 0 30px var(--cyan-glow);
+      transform: translateY(-3px);
+    }
+
+    .btn-arrow {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+    }
+
+    /* ========== STATS STRIP ========== */
+    .stats-strip {
+      position: relative;
+      z-index: 1;
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,220,255,0.02);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 32px 24px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 56px;
+      font-weight: 900;
+      color: var(--pink);
+      line-height: 1;
+      text-shadow: 0 0 30px var(--pink-glow);
+    }
+    .stat-value sup { font-size: 28px; }
+    .stat-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    /* ========== SECTION COMMON ========== */
+    section { position: relative; z-index: 1; padding: 120px 0; }
+    .section-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(30px, 4vw, 48px);
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+    }
+    .section-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 560px;
+      line-height: 1.8;
+    }
+
+    /* ========== PLATFORM SECTION ========== */
+    .platform-section { background: var(--bg-deep); }
+
+    .platform-header {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+    .platform-header .section-desc { margin: 0 auto; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+      background: var(--border);
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      padding: 56px 48px;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+    .feature-card:hover { background: rgba(8, 18, 40, 0.95); }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-card[data-accent="pink"]::before  { background: var(--pink); box-shadow: 0 0 20px var(--pink-glow); }
+    .feature-card[data-accent="cyan"]::before  { background: var(--cyan); box-shadow: 0 0 20px var(--cyan-glow); }
+    .feature-card[data-accent="violet"]::before { background: var(--violet); box-shadow: 0 0 20px var(--violet-glow); }
+    .feature-card[data-accent="gold"]::before   { background: var(--gold); box-shadow: 0 0 20px rgba(255,209,102,0.35); }
+
+    .feature-icon {
+      width: 60px; height: 60px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      margin-bottom: 28px;
+    }
+    .feature-icon.pink   { background: rgba(255,26,109,0.12); border: 1px solid rgba(255,26,109,0.2); }
+    .feature-icon.cyan   { background: rgba(0,220,255,0.08); border: 1px solid rgba(0,220,255,0.2); }
+    .feature-icon.violet { background: rgba(155,48,255,0.1); border: 1px solid rgba(155,48,255,0.2); }
+    .feature-icon.gold   { background: rgba(255,209,102,0.08); border: 1px solid rgba(255,209,102,0.2); }
+
+    .feature-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      letter-spacing: 1px;
+    }
+    .feature-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+    .feature-tag {
+      display: inline-block;
+      margin-top: 24px;
+      padding: 6px 16px;
+      border-radius: 50px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .feature-tag.pink   { background: rgba(255,26,109,0.12);  color: var(--pink);   border: 1px solid rgba(255,26,109,0.25); }
+    .feature-tag.cyan   { background: rgba(0,220,255,0.08);   color: var(--cyan);   border: 1px solid rgba(0,220,255,0.2); }
+    .feature-tag.violet { background: rgba(155,48,255,0.1);   color: var(--violet); border: 1px solid rgba(155,48,255,0.2); }
+    .feature-tag.gold   { background: rgba(255,209,102,0.08); color: var(--gold);   border: 1px solid rgba(255,209,102,0.2); }
+
+    /* ========== TOKEN UTILITY ========== */
+    .token-section {
+      background: var(--bg-void);
+      overflow: hidden;
+    }
+    .token-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .token-visual {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 440px;
+    }
+    .token-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid;
+      animation: spin linear infinite;
+    }
+    .token-ring-1 {
+      width: 340px; height: 340px;
+      border-color: rgba(255,26,109,0.2);
+      animation-duration: 20s;
+    }
+    .token-ring-2 {
+      width: 260px; height: 260px;
+      border-color: rgba(0,220,255,0.15);
+      animation-duration: 15s;
+      animation-direction: reverse;
+      border-style: dashed;
+    }
+    .token-ring-3 {
+      width: 180px; height: 180px;
+      border-color: rgba(155,48,255,0.2);
+      animation-duration: 10s;
+    }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .token-center {
+      width: 110px; height: 110px;
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+      box-shadow: 0 0 60px var(--pink-glow), 0 0 100px rgba(155,48,255,0.2);
+      position: relative;
+      z-index: 2;
+    }
+
+    .token-orbit-dot {
+      position: absolute;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+    }
+
+    .token-utilities {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .utility-item {
+      padding: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(10px);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .utility-item:hover {
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+    }
+    .utility-icon { font-size: 22px; margin-bottom: 10px; }
+    .utility-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 1px;
+    }
+    .utility-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ========== DISTRICTS ========== */
+    .districts-section { background: var(--bg-deep); }
+    .districts-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 64px;
+    }
+    .district-card {
+      padding: 36px 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .district-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(0,220,255,0.06) 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .district-card:hover {
+      border-color: var(--cyan);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 30px var(--cyan-glow);
+    }
+    .district-card:hover::after { opacity: 1; }
+
+    .district-num {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .district-icon { font-size: 36px; margin-bottom: 20px; }
+    .district-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .district-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    /* ========== TEAM ========== */
+    .team-section { background: var(--bg-void); }
+    .team-section .section-title,
+    .team-section .section-label { text-align: center; }
+    .team-section .section-label { margin: 0 auto 16px; }
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 64px;
+    }
+    .team-card {
+      text-align: center;
+      padding: 48px 32px 36px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .team-card:hover {
+      border-color: var(--pink);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 40px var(--pink-glow);
+      transform: translateY(-6px);
+    }
+    .team-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 60px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--pink), transparent);
+    }
+    .team-avatar {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      box-shadow: 0 0 30px var(--pink-glow);
+    }
+    .team-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .team-role {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--cyan);
+    }
+    .team-socials {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 24px;
+    }
+    .team-social {
+      width: 36px; height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      font-size: 14px;
+      transition: all 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .team-social:hover {
+      border-color: var(--pink);
+      color: var(--pink);
+      background: rgba(255,26,109,0.08);
+    }
+
+    /* ========== NEWSLETTER ========== */
+    .newsletter-section {
+      background: var(--bg-deep);
+      text-align: center;
+    }
+    .newsletter-box {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 72px 56px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      position: relative;
+      overflow: hidden;
+    }
+    .newsletter-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    }
+    .newsletter-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    .newsletter-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 36px;
+    }
+    .newsletter-form {
+      display: flex;
+      gap: 12px;
+    }
+    .newsletter-input {
+      flex: 1;
+      padding: 14px 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .newsletter-input::placeholder { color: var(--text-muted); }
+    .newsletter-input:focus { border-color: var(--cyan); }
+
+    /* ========== FOOTER ========== */
+    footer {
+      background: var(--bg-void);
+      border-top: 1px solid var(--border);
+      padding: 80px 0 40px;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 60px;
+      margin-bottom: 64px;
+    }
+    .footer-brand p {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.8;
+      margin: 20px 0 28px;
+      max-width: 280px;
+    }
+    .footer-socials {
+      display: flex; gap: 12px;
+    }
+    .footer-social {
+      width: 40px; height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      font-size: 16px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .footer-social:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(0,220,255,0.06);
+    }
+    .footer-col h4 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 12px; }
+    .footer-col ul li a {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-col ul li a:hover { color: var(--cyan); }
+    .footer-contact-item {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .footer-contact-item span:first-child { color: var(--cyan); font-size: 16px; flex-shrink: 0; }
+
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-copy {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .footer-links {
+      display: flex; gap: 28px;
+    }
+    .footer-links a {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--cyan); }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .token-inner { grid-template-columns: 1fr; gap: 48px; }
+      .token-visual { height: 300px; }
+      .districts-grid { grid-template-columns: repeat(2, 1fr); }
+      .team-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
+    }
+    @media (max-width: 640px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .hero-cta { flex-direction: column; align-items: center; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
+      .districts-grid { grid-template-columns: 1fr; }
+      .team-grid { grid-template-columns: 1fr; }
+      .newsletter-form { flex-direction: column; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+      .token-utilities { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== NAVBAR ========== -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">P</div>
+      <span class="nav-logo-text">PROMETAV</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#">Whitepaper</a></li>
+      <li><a href="#">Marketplace</a></li>
+      <li><a href="#">News</a></li>
+      <li><a href="#">Staking</a></li>
+    </ul>
+    <button class="btn-nav">Enter ProMetaV</button>
+  </nav>
+
+  <!-- ========== HERO ========== -->
+  <section class="hero" id="hero">
+    <div class="orb-pink"></div>
+    <div class="orb-cyan"></div>
+    <div class="hero-content">
+      <div class="hero-badge">&#9679; The Metaverse Built for Work</div>
+      <h1 class="hero-title">
+        Pro<span class="accent">MetaV</span>
+      </h1>
+      <p class="hero-tagline">
+        <span>Learn.</span> Train. <span>Work.</span> Earn.
+      </p>
+      <p class="hero-desc">
+        The world's first enterprise metaverse platform — immersive 3D environments
+        for training, collaboration, and professional growth powered by blockchain.
+      </p>
+      <div class="hero-cta">
+        <a href="#" class="btn-primary">
+          Enter ProMetaV
+          <span class="btn-arrow">›</span>
+        </a>
+        <a href="#" class="btn-secondary">
+          Buy PMV Token
+          <span class="btn-arrow">›</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== STATS STRIP ========== -->
+  <div class="stats-strip">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">70<sup>%</sup> ↑</div>
+          <div class="stat-label">Faster to Train</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">70<sup>%</sup> ↑</div>
+          <div class="stat-label">Productivity by New Hires</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">82<sup>%</sup> ↑</div>
+          <div class="stat-label">Information Retention</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PLATFORM FEATURES ========== -->
+  <section class="platform-section" id="platform">
+    <div class="container">
+      <div class="platform-header">
+        <div class="section-label">The Platform</div>
+        <h2 class="section-title">Pioneering the Future of Work<br>on an Expansive Platform</h2>
+        <p class="section-desc">Make meaningful connections with your peers while you learn, train, work, and earn in a fully immersive virtual world.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card" data-accent="pink">
+          <div class="feature-icon pink">📚</div>
+          <div class="feature-title">LEARN</div>
+          <p class="feature-text">Immersive content for everyone. Learn a vast array of in-demand skills and practise in VR from the comfort of your home. Self-paced and instructor-led courses built for the modern workforce.</p>
+          <span class="feature-tag pink">Immersive Learning</span>
+        </div>
+        <div class="feature-card" data-accent="cyan">
+          <div class="feature-icon cyan">💼</div>
+          <div class="feature-title">WORK</div>
+          <p class="feature-text">Let your digital twin take the load off your shoulders. A virtual space to collaborate across borders, host meetings, run operations, and build your enterprise with no geographic limits.</p>
+          <span class="feature-tag cyan">Virtual Workspace</span>
+        </div>
+        <div class="feature-card" data-accent="violet">
+          <div class="feature-icon violet">🎯</div>
+          <div class="feature-title">TRAIN</div>
+          <p class="feature-text">Get rid of the long manuals, tedious lectures, and walkarounds. Retain what you learn through immersive simulations, scenario-based training, and real-time assessments with instant feedback.</p>
+          <span class="feature-tag violet">Skill Development</span>
+        </div>
+        <div class="feature-card" data-accent="gold">
+          <div class="feature-icon gold">💰</div>
+          <div class="feature-title">EARN</div>
+          <p class="feature-text">Get paid for doing what you love. Search through hundreds of jobs, apply, and start earning — all within the ProMetaV ecosystem. Turn your expertise into income in the virtual economy.</p>
+          <span class="feature-tag gold">Web3 Economy</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== TOKEN UTILITY ========== -->
+  <section class="token-section" id="token">
+    <div class="container">
+      <div class="token-inner">
+        <div>
+          <div class="section-label">$PMV Token</div>
+          <h2 class="section-title">Powering the<br><span class="text-pink">ProMetaV</span> Economy</h2>
+          <p class="section-desc">The PMV token is the lifeblood of the ProMetaV ecosystem — used for governance, staking, purchases, and earning within the virtual world.</p>
+          <div class="token-utilities">
+            <div class="utility-item">
+              <div class="utility-icon">🏪</div>
+              <div class="utility-name">NFT Marketplace</div>
+              <div class="utility-desc">Buy, sell & mint exclusive NFTs within the ProMetaV universe</div>
+            </div>
+            <div class="utility-item">
+              <div class="utility-icon">📈</div>
+              <div class="utility-name">Stake Pool</div>
+              <div class="utility-desc">Stake $PMV and earn substantial returns on your investment</div>
+            </div>
+            <div class="utility-item">
+              <div class="utility-icon">🏙️</div>
+              <div class="utility-name">Buy Land</div>
+              <div class="utility-desc">Own virtual real estate — build offices, homes, malls, and more</div>
+            </div>
+            <div class="utility-item">
+              <div class="utility-icon">🎫</div>
+              <div class="utility-name">Events & Access</div>
+              <div class="utility-desc">Buy tickets to exclusive virtual events and experiences</div>
+            </div>
+          </div>
+        </div>
+        <div class="token-visual">
+          <div class="token-ring token-ring-1"></div>
+          <div class="token-ring token-ring-2"></div>
+          <div class="token-ring token-ring-3"></div>
+          <div class="token-center">$PMV</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== DISTRICTS ========== -->
+  <section class="districts-section" id="districts">
+    <div class="container">
+      <div class="section-label">Explore</div>
+      <h2 class="section-title">The ProMetaV Districts</h2>
+      <p class="section-desc">Click on a district to discover what awaits you inside the ProMetaV universe.</p>
+      <div class="districts-grid">
+        <div class="district-card">
+          <div class="district-num">01 / CENTRAL</div>
+          <div class="district-icon">🌐</div>
+          <div class="district-name">Central Hub</div>
+          <p class="district-desc">The point where your journey begins. Find mega billboards here to make job search easy.</p>
+        </div>
+        <div class="district-card">
+          <div class="district-num">02 / CORPORATE</div>
+          <div class="district-icon">🏢</div>
+          <div class="district-name">Technophiles</div>
+          <p class="district-desc">The corporate hub of the PMV universe. The heart of the most digitally advanced economy.</p>
+        </div>
+        <div class="district-card">
+          <div class="district-num">03 / AKADEMIA</div>
+          <div class="district-icon">🎓</div>
+          <div class="district-name">Akademia</div>
+          <p class="district-desc">Find 1000+ qualified tutors for complete learning programmes in your field of choice.</p>
+        </div>
+        <div class="district-card">
+          <div class="district-num">04 / SOCIAL</div>
+          <div class="district-icon">✨</div>
+          <div class="district-name">Fashionista</div>
+          <p class="district-desc">Get tickets to exclusive virtual events, attend shows, and connect with the community.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== TEAM ========== -->
+  <section class="team-section" id="team">
+    <div class="container">
+      <div class="section-label">The Team</div>
+      <h2 class="section-title" style="text-align:center;">Masterminds Behind<br><span class="text-cyan">ProMetaV</span></h2>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar">AM</div>
+          <div class="team-name">Ali Makahleh</div>
+          <div class="team-role">CEO &amp; Founder</div>
+          <div class="team-socials">
+            <a href="#" class="team-social">✉</a>
+            <a href="#" class="team-social">in</a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">SH</div>
+          <div class="team-name">Simón Hoffmann</div>
+          <div class="team-role">CGO &amp; Co-Founder</div>
+          <div class="team-socials">
+            <a href="#" class="team-social">✉</a>
+            <a href="#" class="team-social">in</a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">MA</div>
+          <div class="team-name">Mudassir Amin</div>
+          <div class="team-role">Chief Financial Officer</div>
+          <div class="team-socials">
+            <a href="#" class="team-social">✉</a>
+            <a href="#" class="team-social">in</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="contact">
+    <div class="container">
+      <div class="newsletter-box">
+        <div class="section-label" style="text-align:center;margin-bottom:16px;">Stay Updated</div>
+        <div class="newsletter-title">Join the ProMetaV Community</div>
+        <p class="newsletter-sub">Subscribe to our newsletter and be the first to hear about platform updates, token news, and exclusive events.</p>
+        <div class="newsletter-form">
+          <input type="email" class="newsletter-input" placeholder="Enter your email address" />
+          <button class="btn-primary" style="white-space:nowrap;flex-shrink:0;">Get Notified</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-logo" style="display:inline-flex;margin-bottom:4px;">
+            <div class="nav-logo-icon">P</div>
+            <span class="nav-logo-text">PROMETAV</span>
+          </div>
+          <p>The world's first enterprise metaverse platform — immersive, blockchain-powered, and built for the future of work.</p>
+          <div class="footer-socials">
+            <div class="footer-social">f</div>
+            <div class="footer-social">ig</div>
+            <div class="footer-social">tw</div>
+            <div class="footer-social">dc</div>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="#">Whitepaper</a></li>
+            <li><a href="#">Marketplace</a></li>
+            <li><a href="#">Staking</a></li>
+            <li><a href="#">News</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Team</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Press</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <div class="footer-contact-item"><span>📍</span><span>Cluster R, Astrolabs, JLT, Dubai, UAE</span></div>
+          <div class="footer-contact-item"><span>📞</span><span>+971 58 949 8327</span></div>
+          <div class="footer-contact-item"><span>✉</span><span>info@prometav.com</span></div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">© 2024 ProMetaV. Proprietary &amp; Confidential. All Rights Reserved.</div>
+        <div class="footer-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms &amp; Conditions</a>
+          <a href="#">Refunds</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

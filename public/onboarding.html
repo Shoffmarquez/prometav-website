@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProMetaV | Employee Onboarding — Unity WebGL Template</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       PROMETAV EMPLOYEE ONBOARDING — UNITY WEBGL TEMPLATE
+       ============================================================
+       This file is designed as both:
+       1. A fully functional HTML/CSS/JS prototype for stakeholder review
+       2. A structural & UI reference for Unity WebGL implementation
+
+       UNITY INTEGRATION NOTES:
+       - Each .screen maps to a Unity Scene or UI Panel (Canvas)
+       - JavaScript SendMessage() calls map to Unity C# public methods
+       - Progress state can be managed via PlayerPrefs in Unity
+       - 3D content replaces #viewport-placeholder in production builds
+       - webgl_canvas element should be replaced with Unity WebGL canvas
+    ============================================================ */
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Color Tokens — mirror these in Unity's UI Color Palette */
+      --void:          #020610;
+      --deep:          #060d1f;
+      --surface:       #0b1628;
+      --card:          rgba(8, 20, 45, 0.9);
+      --glass:         rgba(0, 200, 255, 0.04);
+      --pink:          #ff1a6d;
+      --pink-glow:     rgba(255, 26, 109, 0.4);
+      --cyan:          #00dcff;
+      --cyan-glow:     rgba(0, 220, 255, 0.35);
+      --violet:        #9b30ff;
+      --green:         #00ff9d;
+      --green-glow:    rgba(0, 255, 157, 0.3);
+      --gold:          #ffd166;
+      --text:          #e2eeff;
+      --text-muted:    #5a7a9e;
+      --border:        rgba(0, 220, 255, 0.12);
+      --border-bright: rgba(0, 220, 255, 0.35);
+      --radius:        10px;
+      --radius-lg:     18px;
+      --hud-height:    72px;
+      --sidebar-width: 300px;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      background: var(--void);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+    }
+
+    /* ============================================================
+       LOADING SCREEN  (Unity: SplashScreen Scene)
+    ============================================================ */
+    #loading-screen {
+      position: fixed; inset: 0; z-index: 999;
+      background: var(--void);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 28px;
+      transition: opacity 0.8s ease;
+    }
+    #loading-screen.fade-out { opacity: 0; pointer-events: none; }
+
+    .load-logo {
+      width: 90px; height: 90px;
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      border-radius: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 34px;
+      font-weight: 900;
+      color: #fff;
+      box-shadow: 0 0 60px var(--pink-glow);
+      animation: logo-pulse 2s ease-in-out infinite;
+    }
+    @keyframes logo-pulse {
+      0%, 100% { box-shadow: 0 0 40px var(--pink-glow); }
+      50% { box-shadow: 0 0 80px var(--pink-glow), 0 0 120px rgba(155,48,255,0.2); }
+    }
+
+    .load-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      color: var(--text);
+    }
+    .load-subtitle {
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .load-bar-wrap {
+      width: 280px;
+      height: 3px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .load-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--pink), var(--cyan));
+      border-radius: 3px;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+    .load-percent {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      color: var(--cyan);
+      letter-spacing: 2px;
+    }
+
+    /* ============================================================
+       MAIN SHELL  (Unity: Persistent GameManager / Canvas)
+    ============================================================ */
+    #app {
+      display: none;
+      height: 100vh;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #app.active { display: flex; }
+
+    /* ---- TOP HUD ------------------------------------------- */
+    #hud {
+      height: var(--hud-height);
+      flex-shrink: 0;
+      background: rgba(2, 6, 16, 0.95);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      gap: 24px;
+      position: relative;
+      z-index: 50;
+    }
+
+    .hud-logo {
+      display: flex; align-items: center; gap: 12px;
+      margin-right: 16px;
+    }
+    .hud-logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 16px;
+      font-weight: 900;
+      color: #fff;
+    }
+    .hud-logo-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+
+    .hud-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+    }
+
+    .hud-module {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      text-transform: uppercase;
+    }
+
+    /* Progress bar in HUD */
+    .hud-progress-wrap {
+      flex: 1;
+      max-width: 400px;
+    }
+    .hud-progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .hud-progress-bar {
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .hud-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--pink), var(--cyan));
+      border-radius: 4px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    /* XP Badge */
+    .hud-xp {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 16px;
+      background: rgba(0,255,157,0.06);
+      border: 1px solid rgba(0,255,157,0.18);
+      border-radius: 8px;
+    }
+    .hud-xp-icon { font-size: 16px; }
+    .hud-xp-val {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    /* Avatar */
+    .hud-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--violet), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      border: 2px solid rgba(155,48,255,0.4);
+      margin-left: auto;
+      cursor: pointer;
+    }
+
+    /* ---- BODY AREA ------------------------------------------ */
+    #body-area {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ---- SIDEBAR -------------------------------------------- */
+    #sidebar {
+      width: var(--sidebar-width);
+      flex-shrink: 0;
+      background: rgba(4, 10, 24, 0.97);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+      overflow-y: auto;
+    }
+
+    .sidebar-section-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 24px 12px;
+    }
+
+    .sidebar-step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 24px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .sidebar-step:hover { background: rgba(0,220,255,0.04); }
+    .sidebar-step.active {
+      background: rgba(0,220,255,0.06);
+      border-left-color: var(--cyan);
+    }
+    .sidebar-step.completed { border-left-color: var(--green); }
+
+    .step-dot {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+    .sidebar-step.active .step-dot {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan-glow);
+      background: rgba(0,220,255,0.08);
+    }
+    .sidebar-step.completed .step-dot {
+      border-color: var(--green);
+      color: var(--green);
+      background: rgba(0,255,157,0.08);
+    }
+
+    .step-info { flex: 1; min-width: 0; }
+    .step-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sidebar-step.active .step-name { color: var(--text); }
+    .sidebar-step.completed .step-name { color: var(--green); }
+    .step-status {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .sidebar-step.active .step-status { color: var(--cyan); }
+    .sidebar-step.completed .step-status { color: var(--green); }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .sidebar-help {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .sidebar-help a { color: var(--cyan); cursor: pointer; }
+
+    /* ---- VIEWPORT (Unity WebGL Canvas) ---------------------- */
+    #viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: var(--deep);
+    }
+
+    /* Background grid */
+    #viewport::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,220,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,220,255,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    /* Unity WebGL Canvas placeholder */
+    #unity-canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      display: none; /* Shown in production Unity build */
+    }
+
+    /* ============================================================
+       SCREENS — each maps to a Unity UI Panel / Scene
+    ============================================================ */
+    .screen {
+      position: absolute; inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px;
+      overflow-y: auto;
+    }
+    .screen.active { display: flex; }
+
+    /* --- SCREEN 0: WELCOME ---------------------------------- */
+    #screen-welcome {
+      background: radial-gradient(ellipse at center top, rgba(155,48,255,0.08) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 80%, rgba(255,26,109,0.07) 0%, transparent 50%);
+    }
+
+    .welcome-content { max-width: 640px; text-align: center; }
+    .welcome-greeting {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 20px;
+    }
+    .welcome-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(28px, 4vw, 52px);
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .welcome-title .pink { color: var(--pink); }
+    .welcome-title .cyan { color: var(--cyan); }
+    .welcome-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.8;
+      margin-bottom: 48px;
+    }
+
+    /* Avatar builder */
+    .avatar-builder {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .avatar-option {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      transition: all 0.2s;
+    }
+    .avatar-option:hover, .avatar-option.selected {
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px var(--cyan-glow);
+      transform: scale(1.1);
+    }
+
+    .name-input-row {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto 32px;
+    }
+    .ui-input {
+      flex: 1;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .ui-input::placeholder { color: var(--text-muted); }
+    .ui-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0,220,255,0.08);
+    }
+
+    /* --- SCREEN 1: COMPANY OVERVIEW ------------------------- */
+    #screen-overview {
+      background: radial-gradient(ellipse at 20% 20%, rgba(0,220,255,0.06) 0%, transparent 50%);
+      align-items: flex-start;
+    }
+
+    .content-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .content-header { grid-column: 1/-1; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .card:hover {
+      border-color: var(--border-bright);
+      transform: translateY(-2px);
+    }
+    .card-icon { font-size: 32px; margin-bottom: 16px; }
+    .card-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .card-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+    .card-badge {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 5px 14px;
+      border-radius: 50px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .card-badge.cyan { background: rgba(0,220,255,0.1); color: var(--cyan); border: 1px solid rgba(0,220,255,0.2); }
+    .card-badge.pink { background: rgba(255,26,109,0.1); color: var(--pink); border: 1px solid rgba(255,26,109,0.2); }
+    .card-badge.green { background: rgba(0,255,157,0.08); color: var(--green); border: 1px solid rgba(0,255,157,0.2); }
+    .card-badge.violet { background: rgba(155,48,255,0.1); color: var(--violet); border: 1px solid rgba(155,48,255,0.2); }
+
+    /* --- SCREEN 2: VIRTUAL OFFICE TOUR ---------------------- */
+    #screen-tour {
+      background: radial-gradient(ellipse at 80% 50%, rgba(255,26,109,0.06) 0%, transparent 50%);
+      align-items: flex-start;
+    }
+
+    .tour-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .tour-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .tour-card:hover {
+      border-color: var(--pink);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 20px var(--pink-glow);
+    }
+    .tour-card.visited { border-color: var(--green); }
+
+    .tour-preview {
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      position: relative;
+      overflow: hidden;
+    }
+    .tour-preview.hub-color { background: linear-gradient(135deg, rgba(0,220,255,0.1), rgba(155,48,255,0.1)); }
+    .tour-preview.ops-color { background: linear-gradient(135deg, rgba(255,26,109,0.1), rgba(155,48,255,0.1)); }
+    .tour-preview.break-color { background: linear-gradient(135deg, rgba(0,255,157,0.08), rgba(0,220,255,0.08)); }
+    .tour-preview.training-color { background: linear-gradient(135deg, rgba(255,209,102,0.08), rgba(255,26,109,0.08)); }
+    .tour-preview.collab-color { background: linear-gradient(135deg, rgba(155,48,255,0.1), rgba(0,220,255,0.1)); }
+    .tour-preview.event-color { background: linear-gradient(135deg, rgba(255,26,109,0.1), rgba(255,209,102,0.08)); }
+
+    .tour-visited-badge {
+      position: absolute;
+      top: 10px; right: 10px;
+      padding: 4px 10px;
+      background: rgba(0,255,157,0.15);
+      border: 1px solid var(--green);
+      border-radius: 50px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--green);
+      display: none;
+    }
+    .tour-card.visited .tour-visited-badge { display: block; }
+
+    .tour-info { padding: 20px; }
+    .tour-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .tour-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* --- SCREEN 3: TRAINING MODULES ------------------------- */
+    #screen-training {
+      background: radial-gradient(ellipse at 50% 0%, rgba(155,48,255,0.08) 0%, transparent 60%);
+      align-items: flex-start;
+    }
+
+    .modules-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .module-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 22px 28px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .module-row:hover { border-color: var(--cyan); background: rgba(8,20,45,0.98); }
+    .module-row.locked { opacity: 0.4; cursor: not-allowed; }
+    .module-row.completed { border-color: rgba(0,255,157,0.25); }
+
+    .module-num {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .module-num.active { background: rgba(0,220,255,0.1); color: var(--cyan); border: 1px solid rgba(0,220,255,0.2); }
+    .module-num.done   { background: rgba(0,255,157,0.1); color: var(--green); border: 1px solid rgba(0,255,157,0.2); }
+    .module-num.lock   { background: rgba(255,255,255,0.04); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .module-info { flex: 1; }
+    .module-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .module-meta {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .module-meta span { display: flex; align-items: center; gap: 5px; }
+
+    .module-progress-bar {
+      width: 120px;
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .module-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--pink), var(--cyan));
+      border-radius: 4px;
+    }
+
+    .module-action {
+      flex-shrink: 0;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .module-action.start { background: var(--cyan); color: var(--void); }
+    .module-action.start:hover { box-shadow: 0 0 20px var(--cyan-glow); }
+    .module-action.resume { background: rgba(255,26,109,0.15); color: var(--pink); border: 1px solid rgba(255,26,109,0.3); }
+    .module-action.done-btn { background: rgba(0,255,157,0.1); color: var(--green); border: 1px solid rgba(0,255,157,0.2); }
+
+    /* --- SCREEN 4: ASSESSMENT ------------------------------ */
+    #screen-assessment {
+      background: radial-gradient(ellipse at 20% 80%, rgba(0,220,255,0.06) 0%, transparent 50%);
+      align-items: flex-start;
+    }
+
+    .quiz-wrap {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    .quiz-counter {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+    }
+    .quiz-timer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      background: rgba(255,26,109,0.08);
+      border: 1px solid rgba(255,26,109,0.2);
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--pink);
+    }
+
+    .quiz-question {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 40px;
+      margin-bottom: 20px;
+    }
+    .quiz-q-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .quiz-q-text {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .quiz-option {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .quiz-option:hover { border-color: var(--cyan); background: rgba(0,220,255,0.04); }
+    .quiz-option.selected { border-color: var(--cyan); background: rgba(0,220,255,0.06); }
+    .quiz-option.correct  { border-color: var(--green); background: rgba(0,255,157,0.06); }
+    .quiz-option.wrong    { border-color: var(--pink); background: rgba(255,26,109,0.06); }
+
+    .option-letter {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .quiz-option.selected .option-letter { border-color: var(--cyan); color: var(--cyan); }
+    .quiz-option.correct .option-letter  { border-color: var(--green); color: var(--green); }
+    .quiz-option.wrong .option-letter    { border-color: var(--pink); color: var(--pink); }
+    .option-text {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* --- SCREEN 5: COMPLETION ------------------------------ */
+    #screen-complete {
+      background:
+        radial-gradient(ellipse at 50% 40%, rgba(0,255,157,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 20% 80%, rgba(0,220,255,0.06) 0%, transparent 50%);
+      text-align: center;
+    }
+
+    .complete-badge {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 52px;
+      margin: 0 auto 32px;
+      box-shadow: 0 0 60px var(--green-glow), 0 0 100px var(--cyan-glow);
+      animation: complete-pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes complete-pulse {
+      0%, 100% { box-shadow: 0 0 40px var(--green-glow), 0 0 80px var(--cyan-glow); }
+      50% { box-shadow: 0 0 80px var(--green-glow), 0 0 140px var(--cyan-glow); }
+    }
+
+    .complete-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(24px, 4vw, 44px);
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .complete-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto 48px;
+      line-height: 1.8;
+    }
+
+    .cert-card {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto 40px;
+      padding: 40px;
+      background: var(--card);
+      border: 1px solid rgba(0,255,157,0.3);
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    .cert-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+    }
+    .cert-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--cyan);
+      margin-bottom: 20px;
+    }
+    .cert-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .cert-issued {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .cert-id {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      padding: 10px 16px;
+      background: rgba(0,220,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .complete-stats {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+    .c-stat {
+      padding: 20px 28px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .c-stat-val {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--cyan);
+    }
+    .c-stat-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ============================================================
+       BOTTOM NAV BAR
+    ============================================================ */
+    #bottom-nav {
+      height: 72px;
+      flex-shrink: 0;
+      background: rgba(2, 6, 16, 0.95);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      gap: 16px;
+      z-index: 50;
+    }
+
+    .btn-back {
+      padding: 11px 24px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { border-color: var(--text-muted); color: var(--text); }
+    .btn-back:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .btn-next {
+      padding: 11px 28px;
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 4px 20px var(--pink-glow);
+    }
+    .btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--pink-glow); }
+    .btn-next:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+    .nav-hint {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-left: auto;
+      margin-right: 8px;
+    }
+
+    /* ============================================================
+       SCREEN HEADINGS
+    ============================================================ */
+    .screen-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 12px;
+    }
+    .screen-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(20px, 3vw, 32px);
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 10px;
+      line-height: 1.15;
+    }
+    .screen-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin-bottom: 36px;
+      line-height: 1.7;
+    }
+
+    /* Notification toast */
+    #toast {
+      position: fixed;
+      bottom: 88px; right: 24px;
+      padding: 14px 24px;
+      background: var(--surface);
+      border: 1px solid var(--green);
+      border-radius: var(--radius);
+      color: var(--green);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.4s;
+      z-index: 200;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       LOADING SCREEN
+  ============================================================ -->
+  <div id="loading-screen">
+    <div class="load-logo">P</div>
+    <div class="load-title">PROMETAV</div>
+    <div class="load-subtitle">Employee Onboarding Platform</div>
+    <div class="load-bar-wrap"><div class="load-bar" id="load-bar"></div></div>
+    <div class="load-percent" id="load-percent">0%</div>
+  </div>
+
+  <!-- ============================================================
+       MAIN APP SHELL
+  ============================================================ -->
+  <div id="app">
+
+    <!-- TOP HUD -->
+    <div id="hud">
+      <div class="hud-logo">
+        <div class="hud-logo-icon">P</div>
+        <div class="hud-logo-text">PROMETAV</div>
+      </div>
+      <div class="hud-divider"></div>
+      <div class="hud-module" id="hud-module-name">Employee Onboarding</div>
+      <div class="hud-divider"></div>
+      <div class="hud-progress-wrap">
+        <div class="hud-progress-label">
+          <span>ONBOARDING PROGRESS</span>
+          <span id="hud-pct">0%</span>
+        </div>
+        <div class="hud-progress-bar">
+          <div class="hud-progress-fill" id="hud-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="hud-xp">
+        <div class="hud-xp-icon">⚡</div>
+        <div class="hud-xp-val" id="xp-val">0 XP</div>
+      </div>
+      <div class="hud-avatar" id="hud-avatar">?</div>
+    </div>
+
+    <!-- BODY -->
+    <div id="body-area">
+
+      <!-- SIDEBAR -->
+      <div id="sidebar">
+        <div class="sidebar-section-label">Your Journey</div>
+
+        <div class="sidebar-step active" data-step="0" onclick="goToStep(0)">
+          <div class="step-dot" id="dot-0">01</div>
+          <div class="step-info">
+            <div class="step-name">Welcome</div>
+            <div class="step-status" id="status-0">Create your profile</div>
+          </div>
+        </div>
+        <div class="sidebar-step" data-step="1" onclick="goToStep(1)">
+          <div class="step-dot" id="dot-1">02</div>
+          <div class="step-info">
+            <div class="step-name">Company Overview</div>
+            <div class="step-status" id="status-1">Mission, culture & values</div>
+          </div>
+        </div>
+        <div class="sidebar-step" data-step="2" onclick="goToStep(2)">
+          <div class="step-dot" id="dot-2">03</div>
+          <div class="step-info">
+            <div class="step-name">Virtual Office Tour</div>
+            <div class="step-status" id="status-2">Explore your environment</div>
+          </div>
+        </div>
+        <div class="sidebar-step" data-step="3" onclick="goToStep(3)">
+          <div class="step-dot" id="dot-3">04</div>
+          <div class="step-info">
+            <div class="step-name">Training Modules</div>
+            <div class="step-status" id="status-3">Role-specific training</div>
+          </div>
+        </div>
+        <div class="sidebar-step" data-step="4" onclick="goToStep(4)">
+          <div class="step-dot" id="dot-4">05</div>
+          <div class="step-info">
+            <div class="step-name">Assessment</div>
+            <div class="step-status" id="status-4">Test your knowledge</div>
+          </div>
+        </div>
+        <div class="sidebar-step" data-step="5" onclick="goToStep(5)">
+          <div class="step-dot" id="dot-5">06</div>
+          <div class="step-info">
+            <div class="step-name">Certification</div>
+            <div class="step-status" id="status-5">Complete onboarding</div>
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-help">Need help? <a>Contact HR</a> or <a>watch tutorial</a></div>
+        </div>
+      </div>
+
+      <!-- VIEWPORT -->
+      <div id="viewport">
+        <!-- Unity WebGL canvas (replace this with Unity's canvas in production) -->
+        <canvas id="unity-canvas"></canvas>
+
+        <!-- ======== SCREEN 0: WELCOME ======== -->
+        <div class="screen active" id="screen-welcome">
+          <div class="welcome-content">
+            <div class="welcome-greeting">&#9679; Welcome to ProMetaV</div>
+            <h1 class="welcome-title">
+              Hello,<br>
+              <span class="pink">Future</span> <span class="cyan">Pioneer</span>
+            </h1>
+            <p class="welcome-sub">You've joined one of the most forward-thinking organizations in the metaverse economy. Let's get you set up with a profile and walk you through everything you need to know.</p>
+
+            <p style="font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text-muted);margin-bottom:16px;text-transform:uppercase;">Choose Your Avatar</p>
+            <div class="avatar-builder" id="avatar-builder">
+              <div class="avatar-option selected" data-avatar="🧑‍💼" onclick="selectAvatar(this)">🧑‍💼</div>
+              <div class="avatar-option" data-avatar="👩‍💼" onclick="selectAvatar(this)">👩‍💼</div>
+              <div class="avatar-option" data-avatar="🧑‍🚀" onclick="selectAvatar(this)">🧑‍🚀</div>
+              <div class="avatar-option" data-avatar="👩‍🚀" onclick="selectAvatar(this)">👩‍🚀</div>
+              <div class="avatar-option" data-avatar="🤖" onclick="selectAvatar(this)">🤖</div>
+            </div>
+
+            <div class="name-input-row">
+              <input type="text" class="ui-input" id="user-name" placeholder="Your First Name" />
+              <input type="text" class="ui-input" id="user-dept" placeholder="Department (e.g., Engineering)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- ======== SCREEN 1: COMPANY OVERVIEW ======== -->
+        <div class="screen" id="screen-overview">
+          <div style="width:100%;max-width:1000px;margin:0 auto;">
+            <div class="screen-label">Step 02 — Company Overview</div>
+            <h2 class="screen-title">Our Mission, Culture &amp; Values</h2>
+            <p class="screen-desc">Understanding who we are and what we stand for is the foundation of your journey at ProMetaV.</p>
+            <div class="content-layout">
+              <div class="card">
+                <div class="card-icon">🎯</div>
+                <div class="card-title">Our Mission</div>
+                <p class="card-text">To pioneer the world's first enterprise metaverse platform that empowers every professional to learn, train, work, and earn in an immersive, blockchain-powered virtual world — breaking geographic and economic barriers.</p>
+                <span class="card-badge cyan">Core Mission</span>
+              </div>
+              <div class="card">
+                <div class="card-icon">🌐</div>
+                <div class="card-title">Company Vision</div>
+                <p class="card-text">A world where the future of work is borderless, decentralized, and deeply human. ProMetaV is building the infrastructure for a global workforce that collaborates, creates, and thrives together — regardless of location.</p>
+                <span class="card-badge violet">2030 Vision</span>
+              </div>
+              <div class="card">
+                <div class="card-icon">⚡</div>
+                <div class="card-title">Core Values</div>
+                <p class="card-text">Innovation First · Radical Inclusion · Ownership Mindset · Transparency · Excellence Without Ego. These aren't just words — they're how we make decisions, build products, and treat each other every day.</p>
+                <span class="card-badge pink">Culture Code</span>
+              </div>
+              <div class="card">
+                <div class="card-icon">🏆</div>
+                <div class="card-title">Your Role at ProMetaV</div>
+                <p class="card-text">You're not just an employee — you're a co-creator of the future. Every member of the team owns a piece of the mission. You'll have real impact from day one, backed by a world-class team and cutting-edge tools.</p>
+                <span class="card-badge green">Your Impact</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======== SCREEN 2: VIRTUAL OFFICE TOUR ======== -->
+        <div class="screen" id="screen-tour">
+          <div style="width:100%;max-width:1000px;margin:0 auto;">
+            <div class="screen-label">Step 03 — Virtual Office Tour</div>
+            <h2 class="screen-title">Explore Your Virtual Workspace</h2>
+            <p class="screen-desc">Click on each area to explore your new virtual office. Visit all 6 zones to proceed. In the full Unity build, these will launch 3D walkthroughs.</p>
+            <div class="tour-grid" id="tour-grid">
+              <div class="tour-card" id="tour-0" onclick="visitZone(0)">
+                <div class="tour-preview hub-color">🌐 <span class="tour-visited-badge">✓ VISITED</span></div>
+                <div class="tour-info"><div class="tour-name">Central Hub</div><div class="tour-desc">The main lobby and central communication point for all teams.</div></div>
+              </div>
+              <div class="tour-card" id="tour-1" onclick="visitZone(1)">
+                <div class="tour-preview ops-color">💼 <span class="tour-visited-badge">✓ VISITED</span></div>
+                <div class="tour-info"><div class="tour-name">Operations District</div><div class="tour-desc">Where the business heartbeat lives — strategy, finance, and HR.</div></div>
+              </div>
+              <div class="tour-card" id="tour-2" onclick="visitZone(2)">
+                <div class="tour-preview break-color">☕ <span class="tour-visited-badge">✓ VISITED</span></div>
+                <div class="tour-info"><div class="tour-name">Social Lounge</div><div class="tour-desc">Connect with colleagues, unwind, and build relationships virtually.</div></div>
+              </div>
+              <div class="tour-card" id="tour-3" onclick="visitZone(3)">
+                <div class="tour-preview training-color">🎓 <span class="tour-visited-badge">✓ VISITED</span></div>
+                <div class="tour-info"><div class="tour-name">Akademia District</div><div class="tour-desc">Your go-to zone for all training, courses, and certifications.</div></div>
+              </div>
+              <div class="tour-card" id="tour-4" onclick="visitZone(4)">
+                <div class="tour-preview collab-color">🤝 <span class="tour-visited-badge">✓ VISITED</span></div>
+                <div class="tour-info"><div class="tour-name">Collaboration Zone</div><div class="tour-desc">Virtual meeting rooms, whiteboards, and co-creation spaces.</div></div>
+              </div>
+              <div class="tour-card" id="tour-5" onclick="visitZone(5)">
+                <div class="tour-preview event-color">✨ <span class="tour-visited-badge">✓ VISITED</span></div>
+                <div class="tour-info"><div class="tour-name">Innovation Lab</div><div class="tour-desc">Experiment, prototype, and pitch new ideas in our R&amp;D space.</div></div>
+              </div>
+            </div>
+            <div id="tour-progress-label" style="margin-top:20px;font-family:'Orbitron',sans-serif;font-size:12px;color:var(--text-muted);letter-spacing:1px;text-align:center;">
+              0 / 6 zones visited
+            </div>
+          </div>
+        </div>
+
+        <!-- ======== SCREEN 3: TRAINING MODULES ======== -->
+        <div class="screen" id="screen-training">
+          <div style="width:100%;max-width:860px;margin:0 auto;">
+            <div class="screen-label">Step 04 — Training Modules</div>
+            <h2 class="screen-title">Role-Specific Training</h2>
+            <p class="screen-desc">Complete all required modules to unlock your final assessment. Modules include videos, simulations, and interactive scenarios — all in 3D in the Unity build.</p>
+            <div class="modules-list">
+              <div class="module-row" onclick="startModule(0, this)">
+                <div class="module-num active">01</div>
+                <div class="module-info">
+                  <div class="module-title">Platform & Tools Orientation</div>
+                  <div class="module-meta"><span>⏱ 15 min</span><span>🎮 Interactive</span><span>⭐ Required</span></div>
+                </div>
+                <div class="module-progress-bar"><div class="module-progress-fill" style="width:0%"></div></div>
+                <button class="module-action start">START</button>
+              </div>
+              <div class="module-row" onclick="startModule(1, this)">
+                <div class="module-num active">02</div>
+                <div class="module-info">
+                  <div class="module-title">ProMetaV Ecosystem Deep Dive</div>
+                  <div class="module-meta"><span>⏱ 20 min</span><span>🎬 Video + Quiz</span><span>⭐ Required</span></div>
+                </div>
+                <div class="module-progress-bar"><div class="module-progress-fill" style="width:0%"></div></div>
+                <button class="module-action start">START</button>
+              </div>
+              <div class="module-row" onclick="startModule(2, this)">
+                <div class="module-num active">03</div>
+                <div class="module-info">
+                  <div class="module-title">Token Economy & Web3 Basics</div>
+                  <div class="module-meta"><span>⏱ 18 min</span><span>🔗 Simulation</span><span>⭐ Required</span></div>
+                </div>
+                <div class="module-progress-bar"><div class="module-progress-fill" style="width:0%"></div></div>
+                <button class="module-action start">START</button>
+              </div>
+              <div class="module-row" onclick="startModule(3, this)">
+                <div class="module-num active">04</div>
+                <div class="module-info">
+                  <div class="module-title">Security, Privacy & Compliance</div>
+                  <div class="module-meta"><span>⏱ 12 min</span><span>📋 Policy Review</span><span>⭐ Required</span></div>
+                </div>
+                <div class="module-progress-bar"><div class="module-progress-fill" style="width:0%"></div></div>
+                <button class="module-action start">START</button>
+              </div>
+              <div class="module-row" onclick="startModule(4, this)">
+                <div class="module-num active">05</div>
+                <div class="module-info">
+                  <div class="module-title">Team Collaboration Protocols</div>
+                  <div class="module-meta"><span>⏱ 10 min</span><span>🤝 Scenario</span><span>Optional</span></div>
+                </div>
+                <div class="module-progress-bar"><div class="module-progress-fill" style="width:0%"></div></div>
+                <button class="module-action start">START</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======== SCREEN 4: ASSESSMENT ======== -->
+        <div class="screen" id="screen-assessment">
+          <div style="width:100%;max-width:720px;margin:0 auto;">
+            <div class="screen-label">Step 05 — Knowledge Assessment</div>
+            <h2 class="screen-title">Final Assessment</h2>
+            <p class="screen-desc">Answer the following questions to complete your onboarding certification. You need 70% or above to pass.</p>
+
+            <div class="quiz-wrap">
+              <div class="quiz-header">
+                <div class="quiz-counter" id="quiz-counter">QUESTION 1 OF 4</div>
+                <div class="quiz-timer">⏱ <span id="quiz-timer-val">02:00</span></div>
+              </div>
+              <div class="quiz-question" id="quiz-q-box">
+                <div class="quiz-q-label">Question 01</div>
+                <div class="quiz-q-text" id="quiz-q-text">What is the primary purpose of the $PMV token within the ProMetaV ecosystem?</div>
+              </div>
+              <div class="quiz-options" id="quiz-options">
+                <div class="quiz-option" onclick="selectAnswer(this, false)"><div class="option-letter">A</div><div class="option-text">A social media currency for sharing content</div></div>
+                <div class="quiz-option" onclick="selectAnswer(this, true)"><div class="option-letter">B</div><div class="option-text">Governance, staking, marketplace purchases, and earning within the platform</div></div>
+                <div class="quiz-option" onclick="selectAnswer(this, false)"><div class="option-letter">C</div><div class="option-text">Only used to pay employee salaries</div></div>
+                <div class="quiz-option" onclick="selectAnswer(this, false)"><div class="option-letter">D</div><div class="option-text">A collectible with no functional utility</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======== SCREEN 5: COMPLETION ======== -->
+        <div class="screen" id="screen-complete">
+          <div class="complete-badge">🏆</div>
+          <div class="complete-title">Onboarding <span style="color:var(--green)">Complete!</span></div>
+          <p class="complete-sub">Congratulations — you've officially completed the ProMetaV employee onboarding experience. Your certification has been recorded on the blockchain.</p>
+
+          <div class="complete-stats">
+            <div class="c-stat"><div class="c-stat-val">100%</div><div class="c-stat-label">Completion</div></div>
+            <div class="c-stat"><div class="c-stat-val" id="final-xp">500</div><div class="c-stat-label">XP Earned</div></div>
+            <div class="c-stat"><div class="c-stat-val">6</div><div class="c-stat-label">Zones Visited</div></div>
+          </div>
+
+          <div class="cert-card">
+            <div class="cert-logo">PROMETAV CERTIFICATION</div>
+            <div class="cert-name" id="cert-name">New Team Member</div>
+            <div class="cert-issued">Issued: <span id="cert-date"></span></div>
+            <div style="color:var(--text-muted);font-family:'Inter',sans-serif;font-size:13px;margin-bottom:16px;">Has successfully completed the<br><strong style="color:var(--cyan)">ProMetaV Employee Onboarding Program</strong></div>
+            <div class="cert-id">CERT ID: PMV-<span id="cert-id-val"></span></div>
+          </div>
+
+          <button class="btn-next" onclick="enterPlatform()" style="font-size:13px;padding:14px 36px;">
+            Enter ProMetaV Platform →
+          </button>
+        </div>
+
+      </div><!-- /viewport -->
+    </div><!-- /body-area -->
+
+    <!-- BOTTOM NAV -->
+    <div id="bottom-nav">
+      <button class="btn-back" id="btn-back" onclick="prevStep()" disabled>← Back</button>
+      <button class="btn-next" id="btn-next" onclick="nextStep()">Continue →</button>
+      <span class="nav-hint" id="nav-hint">Set up your profile to begin</span>
+    </div>
+
+  </div><!-- /app -->
+
+  <!-- TOAST -->
+  <div id="toast">✓ Zone visited! XP earned!</div>
+
+  <!-- ============================================================
+       JAVASCRIPT — State Management
+       In Unity: This maps to GameManager.cs + UIController.cs
+       Unity SendMessage() equivalents are noted as comments
+  ============================================================ -->
+  <script>
+    // ---- STATE --------------------------------------------------
+    const state = {
+      currentStep: 0,
+      totalSteps: 6,
+      completedSteps: new Set(),
+      xp: 0,
+      selectedAvatar: '🧑‍💼',
+      userName: '',
+      zonesVisited: new Set(),
+      modulesStarted: new Set(),
+      quizAnswered: false,
+      quizCorrect: 0,
+    };
+
+    const XP_REWARDS = { step: 50, zone: 20, module: 30, quiz: 100 };
+
+    const NAV_HINTS = [
+      'Set up your profile to begin',
+      'Learn about our mission & culture',
+      'Visit all 6 zones to proceed',
+      'Complete at least 4 modules',
+      'Answer all questions to proceed',
+      'Welcome to the team!'
+    ];
+
+    // ---- LOADING ANIMATION -------------------------------------
+    // Unity equivalent: SplashScreen / LoadingScene
+    let pct = 0;
+    const loadBar = document.getElementById('load-bar');
+    const loadPct = document.getElementById('load-percent');
+    const loadInterval = setInterval(() => {
+      pct = Math.min(pct + Math.random() * 12, 100);
+      loadBar.style.width = pct + '%';
+      loadPct.textContent = Math.floor(pct) + '%';
+      if (pct >= 100) {
+        clearInterval(loadInterval);
+        setTimeout(() => {
+          document.getElementById('loading-screen').classList.add('fade-out');
+          setTimeout(() => {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('app').classList.add('active');
+          }, 800);
+        }, 600);
+      }
+    }, 150);
+
+    // ---- NAVIGATION --------------------------------------------
+    // Unity equivalent: SceneManager.LoadScene() / UIPanel.Show()
+
+    function goToStep(n) {
+      // Only allow going to completed steps or current step
+      if (n > state.currentStep && !state.completedSteps.has(n - 1)) return;
+
+      state.currentStep = n;
+      renderScreen();
+    }
+
+    function nextStep() {
+      if (state.currentStep >= state.totalSteps - 1) return;
+      markStepComplete(state.currentStep);
+      state.currentStep++;
+      renderScreen();
+    }
+
+    function prevStep() {
+      if (state.currentStep <= 0) return;
+      state.currentStep--;
+      renderScreen();
+    }
+
+    function markStepComplete(step) {
+      if (!state.completedSteps.has(step)) {
+        state.completedSteps.add(step);
+        addXP(XP_REWARDS.step);
+      }
+    }
+
+    function renderScreen() {
+      const n = state.currentStep;
+
+      // Hide all screens
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      // Show active
+      const screens = ['screen-welcome','screen-overview','screen-tour','screen-training','screen-assessment','screen-complete'];
+      document.getElementById(screens[n]).classList.add('active');
+
+      // Sidebar state
+      document.querySelectorAll('.sidebar-step').forEach((el, i) => {
+        el.classList.remove('active', 'completed');
+        if (i === n) el.classList.add('active');
+        else if (state.completedSteps.has(i)) el.classList.add('completed');
+
+        const dot = document.getElementById('dot-' + i);
+        if (state.completedSteps.has(i)) dot.textContent = '✓';
+      });
+
+      // Back / Next buttons
+      document.getElementById('btn-back').disabled = (n === 0);
+      document.getElementById('btn-next').disabled = (n === state.totalSteps - 1);
+      document.getElementById('nav-hint').textContent = NAV_HINTS[n] || '';
+
+      // HUD
+      const progress = Math.round((state.completedSteps.size / (state.totalSteps - 1)) * 100);
+      document.getElementById('hud-fill').style.width = progress + '%';
+      document.getElementById('hud-pct').textContent = progress + '%';
+
+      // Special logic per screen
+      if (n === 5) prepareCertificate();
+    }
+
+    // ---- AVATAR ------------------------------------------------
+    function selectAvatar(el) {
+      document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+      el.classList.add('selected');
+      state.selectedAvatar = el.dataset.avatar;
+      document.getElementById('hud-avatar').textContent = state.selectedAvatar;
+      // Unity: SendMessage("PlayerManager", "SetAvatar", avatarId)
+    }
+
+    // ---- XP SYSTEM ---------------------------------------------
+    // Unity: SendMessage("XPManager", "AddXP", amount)
+    function addXP(amount) {
+      state.xp += amount;
+      document.getElementById('xp-val').textContent = state.xp + ' XP';
+    }
+
+    // ---- VIRTUAL TOUR ------------------------------------------
+    // Unity: SendMessage("TourManager", "VisitZone", zoneId)
+    let toastTimer;
+    function visitZone(id) {
+      if (state.zonesVisited.has(id)) return;
+      state.zonesVisited.add(id);
+      document.getElementById('tour-' + id).classList.add('visited');
+      addXP(XP_REWARDS.zone);
+      showToast('✓ Zone ' + (id + 1) + ' visited! +' + XP_REWARDS.zone + ' XP');
+
+      const label = document.getElementById('tour-progress-label');
+      label.textContent = state.zonesVisited.size + ' / 6 zones visited';
+
+      if (state.zonesVisited.size >= 6) {
+        label.textContent = '✓ All zones visited! You can proceed.';
+        label.style.color = 'var(--green)';
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ---- TRAINING MODULES --------------------------------------
+    // Unity: SendMessage("TrainingManager", "StartModule", moduleId)
+    function startModule(id, row) {
+      if (state.modulesStarted.has(id)) return;
+      state.modulesStarted.add(id);
+
+      const btn = row.querySelector('.module-action');
+      const bar = row.querySelector('.module-progress-fill');
+      const dot = row.querySelector('.module-num');
+
+      btn.className = 'module-action resume';
+      btn.textContent = 'RESUME';
+      dot.className = 'module-num done';
+      dot.textContent = '✓';
+
+      let w = 0;
+      const interval = setInterval(() => {
+        w = Math.min(w + Math.random() * 15, 100);
+        bar.style.width = w + '%';
+        if (w >= 100) {
+          clearInterval(interval);
+          btn.className = 'module-action done-btn';
+          btn.textContent = '✓ DONE';
+          addXP(XP_REWARDS.module);
+          showToast('Module ' + (id + 1) + ' complete! +' + XP_REWARDS.module + ' XP');
+        }
+      }, 200);
+    }
+
+    // ---- ASSESSMENT --------------------------------------------
+    // Unity: SendMessage("QuizManager", "SubmitAnswer", answerId)
+    let quizTimer = 120;
+    let timerInterval;
+
+    function startQuizTimer() {
+      timerInterval = setInterval(() => {
+        quizTimer--;
+        const m = String(Math.floor(quizTimer / 60)).padStart(2, '0');
+        const s = String(quizTimer % 60).padStart(2, '0');
+        document.getElementById('quiz-timer-val').textContent = m + ':' + s;
+        if (quizTimer <= 0) {
+          clearInterval(timerInterval);
+        }
+      }, 1000);
+    }
+
+    function selectAnswer(el, correct) {
+      if (state.quizAnswered) return;
+      state.quizAnswered = true;
+      clearInterval(timerInterval);
+
+      document.querySelectorAll('.quiz-option').forEach(opt => {
+        opt.onclick = null;
+      });
+
+      if (correct) {
+        el.classList.add('correct');
+        state.quizCorrect++;
+        addXP(XP_REWARDS.quiz);
+        showToast('✓ Correct! +' + XP_REWARDS.quiz + ' XP');
+      } else {
+        el.classList.add('wrong');
+        showToast('✗ Incorrect. Review module 2 for more info.');
+      }
+
+      // Next question (simplified — expand for full quiz)
+      setTimeout(() => {
+        state.quizAnswered = false;
+        document.getElementById('quiz-q-text').textContent = 'What does the ProMetaV platform primarily help organizations improve?';
+        document.getElementById('quiz-counter').textContent = 'QUESTION 2 OF 4';
+        document.querySelectorAll('.quiz-option').forEach(o => {
+          o.className = 'quiz-option';
+        });
+        quizTimer = 120;
+        startQuizTimer();
+      }, 2000);
+    }
+
+    // ---- CERTIFICATE -------------------------------------------
+    function prepareCertificate() {
+      const name = document.getElementById('user-name').value || 'New Team Member';
+      document.getElementById('cert-name').textContent = name;
+      document.getElementById('cert-date').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('cert-id-val').textContent = Math.random().toString(36).substr(2, 9).toUpperCase();
+      document.getElementById('final-xp').textContent = state.xp;
+      document.getElementById('hud-avatar').textContent = state.selectedAvatar;
+    }
+
+    function enterPlatform() {
+      alert('🎉 Welcome to ProMetaV, ' + (document.getElementById('user-name').value || 'Pioneer') + '!\n\nYour onboarding is complete. Redirecting to your personal dashboard...');
+      // Unity: Application.LoadLevel("MainHub")
+    }
+
+    // ---- INIT --------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('cert-date');
+      // Start quiz timer when assessment screen is shown
+      const observer = new MutationObserver(() => {
+        if (document.getElementById('screen-assessment').classList.contains('active')) {
+          if (quizTimer === 120) startQuizTimer();
+        }
+      });
+      observer.observe(document.getElementById('screen-assessment'), { attributes: true });
+    });
+  </script>
+
+  <!--
+  ================================================================
+  UNITY C# INTEGRATION GUIDE
+  ================================================================
+
+  This HTML file doubles as a reference for Unity WebGL integration.
+  Below are the key Unity-side implementation notes:
+
+  SCENE STRUCTURE:
+  ├── LoadingScene.unity       → Maps to #loading-screen
+  ├── OnboardingScene.unity    → Main scene with all UI panels
+  │   ├── HUD (Canvas)         → Maps to #hud
+  │   ├── Sidebar (Canvas)     → Maps to #sidebar
+  │   ├── Viewport (Camera)    → Maps to #viewport / #unity-canvas
+  │   └── BottomNav (Canvas)   → Maps to #bottom-nav
+  └── CertificateScene.unity   → Maps to #screen-complete
+
+  SCRIPTS:
+  ├── GameManager.cs           → state object
+  ├── UIController.cs          → renderScreen() / goToStep()
+  ├── XPManager.cs             → addXP() / XP_REWARDS
+  ├── TourController.cs        → visitZone()
+  ├── ModuleManager.cs         → startModule()
+  ├── QuizManager.cs           → selectAnswer() / quiz state
+  └── CertificateManager.cs    → prepareCertificate()
+
+  WEBGL BUILD SETTINGS:
+  - Resolution: 1920x1080 (or responsive via CSS)
+  - Compression: Brotli
+  - Memory: 512MB initial heap
+  - Enable: Decompression Fallback
+
+  PLAYERPREFS KEYS (for progress persistence):
+  - "onboarding_step"       → state.currentStep
+  - "onboarding_xp"         → state.xp
+  - "avatar_id"             → state.selectedAvatar
+  - "zones_visited"         → JSON.stringify([...zonesVisited])
+  - "modules_completed"     → JSON.stringify([...modulesStarted])
+
+  ================================================================
+  -->
+
+</body>
+</html>
